@@ -1,56 +1,108 @@
-import os 
-import sys
 import pandas as pd
 import numpy as np
-import vectorbt as vbt 
+import vectorbt as vbt
+from dataclasses import dataclass
+from typing import Tuple
+from pathlib import Path
 
-# Add project root to path to import config
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+from .base_strategy import BaseStrategy, StrategyConfig
 import config
 
-# TODO: INTERVAL should be dynamic based on data fetched
-def load_data(ticker: str): 
-    """Load specific data file from data directory."""
-    file_path = config.DATA_DIR / f"{ticker}_{config.INTERVAL}_RTH.parquet"
-    if not file_path.exists():
-        raise FileNotFoundError(f"Data file {file_path} not found.")
-    df = pd.read_parquet(file_path)
-    return df 
 
-def calculate_indicators(df: pd.DataFrame):
+@dataclass
+class DonchianClassicConfig(StrategyConfig):
     """
-    Strategy: Donchian Pullback
-    Future Changes: TP and SL levels based on ATR
-    Technical indicators calculated using vectorisation
-    """
-    close = df['Close']
-    high = df['High']
-    low = df['Low']
-
-    # TODO: Parameters Settings - for optimisation later 
-    trend_period = 200    
-    donchian_window = 20   
-
-    # Major trend filter 
-    # current bar SMA calculated using prev 200 bar data - avoid current bar from influencing decision
-    sma = vbt.MA.run(close, window=trend_period).ma.shift(1)    
-
-    # support and resistance using donchian channel 
-    # shift(1) shifts current bar data forward in time by 1 row, prevent lookahead bias
-    lower_band = low.rolling(window=donchian_window).min().shift(1)     
-    upper_band = high.rolling(window=donchian_window).max().shift(1)
-
-    return sma, lower_band, upper_band      # return each as pd.Series
-
-def generate_signals(close, sma, lower_band, upper_band):
-    """
-    Entries:
-      - Condition A: current Close > prev 200 SMA
-      - Condition B: current Close < prev 20 Lower Band 
-    Exits:
-      - Condition: Close > Upper Band (Previous 20)
-    """
-    entries = (close > sma) & (close < lower_band)  # enter signal generated only after current bar close, to buy at next bar open
-    exits = (close > upper_band)
+    Configuration for Donchian Pullback Classic strategy.
     
-    return entries, exits
+    Attributes:
+        trend_period: Lookback period for SMA trend filter
+        donchian_window: Lookback period for Donchian channel bands
+    """
+    trend_period: int = 200
+    donchian_window: int = 20
+
+
+class DonchianClassicStrategy(BaseStrategy):
+    """
+    Donchian Pullback entry with SMA trend filter.
+    
+    Entry conditions:
+        - Close > Previous 200-bar SMA (bullish trend)
+        - Close < Previous 20-bar Donchian Lower Band (pullback)
+    
+    Exit conditions:
+        - Close > Previous 20-bar Donchian Upper Band
+    """
+    
+    def __init__(self, strategy_config: DonchianClassicConfig = None):
+        """
+        Initialize strategy with configuration.
+        
+        Args:
+            strategy_config: DonchianClassicConfig instance, uses defaults if None
+        """
+        self.config = strategy_config or DonchianClassicConfig()
+        self.name = "v1_classic"
+    
+    def get_name(self) -> str:
+        """Return strategy name for results folder."""
+        return self.name
+    
+    def load_data(self, ticker: str) -> pd.DataFrame:
+        """
+        Load price data from parquet file.
+        
+        Args:
+            ticker: Stock symbol (e.g., 'SPY')
+            
+        Returns:
+            DataFrame with OHLCV data
+        """
+        file_path = config.DATA_DIR / f"{ticker}_{config.INTERVAL}_RTH.parquet"
+        if not file_path.exists():
+            raise FileNotFoundError(f"Data file {file_path} not found.")
+        return pd.read_parquet(file_path)
+    
+    def _calculate_indicators(self, df: pd.DataFrame) -> Tuple[pd.Series, pd.Series, pd.Series]:
+        """
+        Calculate strategy indicators.
+        
+        Args:
+            df: DataFrame with OHLCV data
+            
+        Returns:
+            Tuple of (sma, lower_band, upper_band) Series
+        """
+        close = df['Close']
+        high = df['High']
+        low = df['Low']
+        
+        # Major trend filter - shift(1) to avoid lookahead bias
+        sma = vbt.MA.run(close, window=self.config.trend_period).ma.shift(1)
+        
+        # Donchian channel bands - shift(1) to avoid lookahead bias
+        lower_band = low.rolling(window=self.config.donchian_window).min().shift(1)
+        upper_band = high.rolling(window=self.config.donchian_window).max().shift(1)
+        
+        return sma, lower_band, upper_band
+    
+    def get_signals(self, df: pd.DataFrame) -> Tuple[pd.Series, pd.Series]:
+        """
+        Generate entry and exit signals.
+        
+        Args:
+            df: DataFrame with OHLCV data
+            
+        Returns:
+            Tuple of (entries, exits) boolean Series
+        """
+        sma, lower_band, upper_band = self._calculate_indicators(df)
+        close = df['Close']
+        
+        # Entry: Uptrend + Pullback to lower band
+        entries = (close > sma) & (close < lower_band)
+        
+        # Exit: Price breaks above upper band
+        exits = (close > upper_band)
+        
+        return entries, exits

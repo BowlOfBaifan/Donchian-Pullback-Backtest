@@ -1,5 +1,6 @@
 STRATEGY REPORT: v1_classic
 TICKER: SPY
+CONFIG: fees=0.001, sl_stop=0.02, init_cash=10000, freq=1h
 ==================================================
 Start                               2023-02-01 09:30:00
 End                                 2025-12-12 15:30:00
