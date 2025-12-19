@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
 
-from .backtest_config import BacktestConfig
+from .backtester import BacktestConfig
 from .strategies.base_strategy import BaseStrategy
 import config
 
@@ -103,7 +103,7 @@ def save_optimisation_results(
         param_names: List of parameter names for heatmap axes
     """
     # Results saved to 'results/strategy_name' directory
-    output_dir = config.BASE_DIR / "results" / strategy_name
+    output_dir = config.BASE_DIR / "results" / strategy_name / "optimisation_results"
     os.makedirs(output_dir, exist_ok=True)
     
     # Save CSV

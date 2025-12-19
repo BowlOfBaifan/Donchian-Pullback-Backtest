@@ -1,0 +1,71 @@
+
+================================================================================
+                    MONTE CARLO SIMULATION REPORT
+================================================================================
+
+Strategy: v1_classic
+Parameters: {'trend_period': 200, 'donchian_window': 20}
+Simulations: 10,000
+Original Trades: 42
+
+================================================================================
+                         ORIGINAL RESULTS
+================================================================================
+Total Return:           12.88%
+Max Drawdown:            6.20%
+
+================================================================================
+                    CONFIDENCE INTERVALS (Bootstrapped)
+================================================================================
+
+FINAL RETURN:
+    5th Percentile:         -0.70%  (worst case)
+    25th Percentile:         7.36%
+    50th Percentile:        13.27%  (median)
+    75th Percentile:        19.11%
+    95th Percentile:        27.85%  (best case)
+
+MAX DRAWDOWN:
+    5th Percentile:          2.50%  (best case)
+    25th Percentile:         3.49%
+    50th Percentile:         4.92%  (median)
+    75th Percentile:         6.57%
+    95th Percentile:         9.98%  (worst case)
+
+SHARPE RATIO:
+    5th Percentile:          -0.02  (worst case)
+    25th Percentile:          0.54
+    50th Percentile:          0.99  (median)
+    75th Percentile:          1.51
+    95th Percentile:          2.49  (best case)
+
+================================================================================
+                       PROBABILITY OF RUIN
+================================================================================
+    P(Max Drawdown >= 15%):       0.30%
+    P(Max Drawdown >= 20%):       0.01%
+    P(Max Drawdown >= 25%):       0.00%
+    P(Max Drawdown >= 30%):       0.00%
+
+================================================================================
+                         INTERPRETATION
+================================================================================
+
+Based on 10,000 bootstrap simulations of 42 trades:
+
+1. RETURN STABILITY:
+   - Your original return of 12.88% ranks at the 
+     48th percentile
+   - 90% confidence interval: [-0.70%, 27.85%]
+
+2. DRAWDOWN RISK:
+   - Your original MDD of 6.20% ranks at the 
+     71th percentile
+   - There is a 0.0% probability of experiencing 
+     a 20% drawdown with this strategy
+
+3. SHARPE STABILITY:
+   - 90% confidence interval: [-0.02, 2.49]
+   - Median Sharpe: 0.99
+
+================================================================================

@@ -7,10 +7,27 @@ import os
 import vectorbt as vbt
 import pandas as pd
 from pathlib import Path
+from dataclasses import dataclass
 
-from .backtest_config import BacktestConfig
 from .strategies.base_strategy import BaseStrategy
 import config
+
+
+@dataclass
+class BacktestConfig:
+    """
+    Configuration for backtesting parameters.
+    
+    Attributes:
+        fees: Transaction costs as decimal (0.001 = 0.1%)
+        sl_stop: Stop loss as decimal (0.02 = 2%)
+        init_cash: Initial portfolio cash amount
+        freq: Data frequency string (e.g., '1h', '1d')
+    """
+    fees: float = 0.001        # 0.1% Comms + Slippage
+    sl_stop: float = 0.02      # 2% Hard Stop
+    init_cash: float = 10000
+    freq: str = '1h'
 
 
 def ensure_dir(directory: Path) -> None:
@@ -66,7 +83,7 @@ def run_backtest(
     )
 
     # Save results to results directory
-    output_dir = config.BASE_DIR / "results" / strategy_name
+    output_dir = config.BASE_DIR / "results" / strategy_name / "base_results"
     ensure_dir(output_dir)
 
     # Save full stats to text file
@@ -87,7 +104,7 @@ def run_backtest(
 
     # Console summary
     print("\n" + "=" * 40)
-    print(f"QUICK RESULT: {strategy_name}")
+    print(f"Strategy: {strategy_name}")
     print(f"Total Return: {pf.total_return():.2%}")
     print(f"Sharpe Ratio: {pf.sharpe_ratio():.2f}")
     print(f"Max Drawdown: {pf.max_drawdown():.2%}")
