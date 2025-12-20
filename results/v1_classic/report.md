@@ -61,17 +61,20 @@ Tightening the Donchian channel window to 15 hours increased trade frequency by 
 To validate the statistical significance of the strategy's edge and assess tail risk, a Monte Carlo simulation was conducted on the base configuration (42 trades).
 
 **Methodology:**
-The simulation utilized a **bootstrap resampling** technique with replacement. We generated **10,000 synthetic equity curves** by randomly sampling from the pool of historical trade returns. This process destroys the serial correlation of trades to test if the strategy's edge persists purely on its return distribution, independent of specific market sequencing.
+The simulation utilized a bootstrap resampling technique with replacement. We generated 10,000 synthetic equity curves by randomly sampling from the pool of historical trade returns. This process destroys the serial correlation of trades to test if the strategy's edge persists purely on its return distribution, independent of specific market sequencing.
 
 **Key Findings:**
 *   **Return Stability:** The strategy demonstrates a positive expected value. The median simulated return (50th percentile) is **13.27%**, closely aligning with the realized historical return of 12.88% (48th percentile). The 90% confidence interval for returns is **[-0.70%, 27.85%]**, indicating a skew towards profitability.
 *   **Drawdown Risk:** The risk profile is exceptionally robust. The probability of encountering a drawdown exceeding 20% is negligible (**0.01%**), and the probability of a 15% drawdown is merely **0.30%**. The 95th percentile Worst-Case Max Drawdown is **9.98%**, suggesting the strategy remains defensive even under adverse permutation sequences.
 *   **Ruin Probability:** At a 25% ruin threshold, the probability of ruin is **0.00%**.
 
-**Conclusion:**
 The diffusion of the equity fan chart and the tight confidence intervals on drawdown confirm that the strategy's performance is not a statistical anomaly. The high win rate and limited downside variance provide a stable foundation for the optimised parameters to build upon.
 
 ---
 
-## 5. Recommendation
-Adopt the **optimised configuration (200/15)**. The improved Sharpe Ratio and increased activity address the primary weakness of the system (low opportunity capture) without sacrificing its defensive characteristics. The Monte Carlo analysis of the base logic confirms that even with conservative settings, the system possesses a verified statistical edge with minimal risk of ruin.
+## 5. Conclusion
+The Monte Carlo analysis supports the strategy's mean-reversion hypothesis with high statistical confidence. The negligible probability of ruin (0.00% at 25% drawdown) and the tight confidence intervals around the equity curve confirm that the edge is robust and not an artifact of specific market sequencing.
+
+However, the base strategy exhibits distinct structural weaknesses. Firstly, the trade frequency is sub-optimal (42 trades in ~2 years), resulting in significant opportunity cost. Secondly, the strategy suffers from an inverted payoff ratio, where the Average Win (0.86%) is markedly lower than the Average Loss (1.67%). This heavy reliance on a high win rate makes the system vulnerable to regime shifts. Finally, the exit logic (upper Donchian band) is overly restrictive, forcing premature exits during strong trend extensions and failing to capture the full extent of breakouts toward higher highs.
+
+To address these limitations, future iterations should consider implementing a trailing stop mechanism (e.g., Chandelier Exit) to allow winners to run during expanded volatility. Additionally, relaxing the entry filter or incorporating a secondary lower-timeframe signal could improve opportunity capture without compromising the defensive nature of the primary regime filter.
