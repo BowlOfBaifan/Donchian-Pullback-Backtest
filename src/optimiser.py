@@ -78,6 +78,8 @@ def run_optimisation(
             'sharpe_ratio': pf.sharpe_ratio(),
             'max_drawdown': pf.max_drawdown(),
             'win_rate': pf.trades.win_rate() if len(pf.trades.records) > 0 else 0,
+            'avg_win': pf.trades.winning.returns.mean() if len(pf.trades.winning.records) > 0 else 0,
+            'avg_loss': pf.trades.losing.returns.mean() if len(pf.trades.losing.records) > 0 else 0,
             'num_trades': len(pf.trades.records)
         }
         results.append(result)
@@ -149,7 +151,7 @@ def print_top_results(results_df: pd.DataFrame, n: int = 5) -> None:
         print(f"\nRank {i+1}:")
         for col, val in row.items():
             if isinstance(val, float):
-                if col in ['total_return', 'max_drawdown', 'win_rate']:
+                if col in ['total_return', 'max_drawdown', 'win_rate', 'avg_win', 'avg_loss']:
                     print(f"  {col}: {val:.2%}")
                 else:
                     print(f"  {col}: {val:.2f}")
@@ -158,19 +160,19 @@ def print_top_results(results_df: pd.DataFrame, n: int = 5) -> None:
 
 
 if __name__ == "__main__":
-    from .strategies.v1_classic import DonchianClassicStrategy
+    from .strategies.v2_asymmetric import DonchianAsymmetricStrategy
     
     # Run optimisation
     results = run_optimisation(
-        strategy_class=DonchianClassicStrategy,
+        strategy_class=DonchianAsymmetricStrategy,
         ticker="SPY"
     )
     
     # Save results and heatmap
     save_optimisation_results(
         results,
-        strategy_name="v1_classic",
-        param_names=["trend_period", "donchian_window"]
+        strategy_name="v2_asymmetric",
+        param_names=["trend_period", "entry_window", "exit_window"]
     )
     
     # Print top results

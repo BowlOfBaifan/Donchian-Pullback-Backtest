@@ -87,7 +87,7 @@ def run_backtest(
     ensure_dir(output_dir)
 
     # Save full stats to text file
-    stats_path = output_dir / "stats.txt"
+    stats_path = output_dir / "base_stats.txt"
     with open(stats_path, "w") as f:
         f.write(f"STRATEGY REPORT: {strategy_name}\n")
         f.write(f"TICKER: {ticker}\n")
